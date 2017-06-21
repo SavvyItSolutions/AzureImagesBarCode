@@ -1,0 +1,15 @@
+Program.Main Time: 21-06-2017 01:42:19 PM
+Program.Main -------------------------------------------------------
+Program.Main Connection opened
+Program.Main Time: 21-06-2017 01:42:32 PM
+Program.Main -------------------------------------------------------
+Program.Main Connection opened
+Program.Main Time: 21-06-2017 01:43:28 PM
+Program.Main -------------------------------------------------------
+Program.Main Connection opened
+Program.Main Time: 21-06-2017 01:53:17 PM
+Program.Main -------------------------------------------------------
+Program.Main Connection opened
+Program.Main Dataset obtained
+Program.Main => Program.GetFile Getting file for Cleaning Wine ....
+Program.Main Obtained Image for Cleaning Wine. Uploading Image..
