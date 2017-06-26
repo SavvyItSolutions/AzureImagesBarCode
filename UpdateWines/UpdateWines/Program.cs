@@ -61,8 +61,8 @@ namespace UpdateWines
                                 foreach (DataRow dr in dt.Rows)
                                 {
                                     WineDetails WineObj = new WineDetails();
-									WineObj.BarCode = dr["BarCode"].ToString();
-                                  //  WineObj.WineId = Convert.ToInt32(dr["WineId"]);
+                                    WineObj.BarCode = dr["BarCode"].ToString();
+                                    //  WineObj.WineId = Convert.ToInt32(dr["WineId"]);
                                     WineObj.WineName = dr["WineName"].ToString();
                                     WineObj.Vintage = dr["Vintage"].ToString();
                                     WineObj.Store = Convert.ToInt32(dr["store"]);
@@ -79,7 +79,8 @@ namespace UpdateWines
                 int success = 0;
                 foreach (WineDetails obj in WineList)
                 {
-                    Image img = p.GetFile(obj.WineName, obj.Vintage);
+                    string Wine = obj.WineName.Replace("&", " and ");
+                    Image img = p.GetFile(Wine, obj.Vintage);
                     logger.Info("Obtained Image for " + obj.WineName + ". Uploading Image..");
                     success = p.UploadImage(img, obj.BarCode, obj.Store);
                 }
@@ -366,10 +367,7 @@ namespace UpdateWines
             CloudStorageAccount storageaccount = CloudStorageAccount.Parse(conStrings);
             CloudBlobClient blobClient = storageaccount.CreateCloudBlobClient();
             CloudBlobContainer container = null;
-            if (store == 1)
-                container = blobClient.GetContainerReference("barcodewall");
-            else if(store == 2)
-                container = blobClient.GetContainerReference("barcodepp");
+            container = blobClient.GetContainerReference("barcodepp");
             container.CreateIfNotExists();
             //For BottleImages
             CloudBlockBlob blob = container.GetBlockBlobReference(BarCode + ".jpg");
@@ -388,10 +386,7 @@ namespace UpdateWines
                 File.Delete(path);
 
                 //For BottleDetailsImages
-                if(store == 1)
-                    container = blobClient.GetContainerReference("barcodewalldetail");
-                else if (store == 2)
-                    container = blobClient.GetContainerReference("barcodeppdetail");
+                container = blobClient.GetContainerReference("barcodeppdetail");
                 blob = container.GetBlockBlobReference(BarCode + ".jpg");
                 ImageForBottle = ResizeImage(BottleImage, BottleImage.Width, BottleImage.Height, 750, 900);
                 ImageForBottle.Save(path);
