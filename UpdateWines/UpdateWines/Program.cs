@@ -80,7 +80,39 @@ namespace UpdateWines
                 foreach (WineDetails obj in WineList)
                 {
                     string Wine = obj.WineName.Replace("&", " and ");
-                    Image img = p.GetFile(Wine, obj.Vintage);
+                    string locName = "";
+                    if (Wine.Contains("Location"))
+                    {
+                        for (int i = 8; i < Wine.Length; i++)
+                        {
+                            if((Wine[i] > 96 && Wine[i] <= 122) || (Wine[i] >= 65 && Wine[i] <= 90))
+                            {
+                                locName = "Location " + Wine[i];
+                                i++;
+                                while (i < Wine.Length)
+                                {
+                                    if ((Wine[i] > 96 && Wine[i] <= 122) || (Wine[i] >= 65 && Wine[i] <= 90))
+                                    {
+                                        locName += Wine[i];
+                                        i++;
+                                    }
+                                    else
+                                    {
+                                        locName += " ";
+                                        i++;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    Image img;
+                    if (locName != "")
+                        Wine = locName.Trim();
+                    if (Wine.Contains("Location"))
+                        img = p.getLocationWineImages(Wine);
+                    else
+                        img = p.GetFile(Wine, obj.Vintage);
                     logger.Info("Obtained Image for " + obj.WineName + ". Uploading Image..");
                     success = p.UploadImage(img, obj.BarCode, obj.Store);
                 }
@@ -494,6 +526,15 @@ namespace UpdateWines
             }
             return BarCode;
 
+        }
+
+        private Image getLocationWineImages(string WineName)
+        {
+            string path = ConfigurationManager.AppSettings["GoogleDrivePathLoc"];
+            string FullPath = path + "\\" + WineName +".png";
+            Image LocImage;
+            LocImage = Image.FromFile(FullPath);
+            return LocImage;
         }
     }
 }
