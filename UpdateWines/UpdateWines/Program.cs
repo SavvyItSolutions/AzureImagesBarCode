@@ -112,9 +112,11 @@ namespace UpdateWines
                     if (Wine.Contains("Location"))
                         img = p.getLocationWineImages(Wine);
                     else
-                        img = p.GetFile(Wine, obj.Vintage);
+                            img = p.GetFile(Wine, obj.Vintage);
+                        //img = p.getLocationWineImages(Wine);
                     logger.Info("Obtained Image for " + obj.WineName + ". Uploading Image..");
                     success = p.UploadImage(img, obj.BarCode, obj.Store);
+                    
                 }
 
                 if (WineList.Count > 0)
@@ -304,6 +306,7 @@ namespace UpdateWines
                             }
                         }
                         bitmp = newBitmap;
+                        return (Image)bitmp;
                     }
                 }
                 catch (Exception ex)
@@ -531,7 +534,8 @@ namespace UpdateWines
         private Image getLocationWineImages(string WineName)
         {
             string path = ConfigurationManager.AppSettings["GoogleDrivePathLoc"];
-            string FullPath = path + "\\" + WineName +".png";
+            string FullPath = path + "\\" + WineName + ".png";
+            //string FullPath = path + "\\" + WineName +".png";
             Image LocImage;
             LocImage = Image.FromFile(FullPath);
             return LocImage;
