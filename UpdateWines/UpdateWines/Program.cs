@@ -8,6 +8,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -36,7 +37,7 @@ namespace UpdateWines
                 DataTable dt = new DataTable();
                 using (SqlConnection con = new SqlConnection(str))
                 {
-                    using (SqlCommand cmd = new SqlCommand("CheckMaxWineIdAlt", con))
+                    using (SqlCommand cmd = new SqlCommand("CheckMaxWineIdAlt", con)) //Stored Procedure that brings the new wines from both the clients
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Connection = con;
@@ -81,6 +82,8 @@ namespace UpdateWines
                 {
                     string Wine = obj.WineName.Replace("&", " and ");
                     string locName = "";
+
+                    //Changing the names for location Wines
                     if (Wine.Contains("Location"))
                     {
                         for (int i = 8; i < Wine.Length; i++)
@@ -110,12 +113,14 @@ namespace UpdateWines
                     if (locName != "")
                         Wine = locName.Trim();
                     if (Wine.Contains("Location"))
-                        img = p.getLocationWineImages(Wine);
+                        img = p.getLocationWineImages(Wine); //Function to get Images for location Wines
                     else
-                            img = p.GetFile(Wine, obj.Vintage);
+                            img = p.GetFile(Wine, obj.Vintage);//Function to get get Images for non location Wines
                         //img = p.getLocationWineImages(Wine);
                     logger.Info("Obtained Image for " + obj.WineName + ". Uploading Image..");
-                    success = p.UploadImage(img, obj.BarCode, obj.Store);
+
+                    //Function that uploads the images to the blob
+                    success = p.UploadImage(img, obj.BarCode, obj.Store); 
                     
                 }
 
@@ -123,6 +128,7 @@ namespace UpdateWines
                 {
                     using (SqlConnection con = new SqlConnection(str))
                     {
+                        //Updates the max wine id for wall client
                         if (maxEnoID > 0)
                         {
                             using (SqlCommand cmd = new SqlCommand("update updateWine set MaxWineID=@wineId where storeId = 1", con))
@@ -135,6 +141,7 @@ namespace UpdateWines
                                 con.Close();
                             }
                         }
+                        //Updates the max wine id for PointPleasant client
                         if (maxPPId > 0)
                         {
                             using (SqlCommand cmd = new SqlCommand("update updateWine set MaxWineID=@wineId where storeId = 2", con))
@@ -149,8 +156,10 @@ namespace UpdateWines
                         }
 
                     }
+                    //Inserts the winedetails to newly inserted wines
+                    p.InsertWineDetails(WineList);
                 }
-
+                //Gets and uploads images to blob from google drive
                 p.getImagesFromDrive();
             }
             catch(Exception ex)
@@ -539,6 +548,29 @@ namespace UpdateWines
             Image LocImage;
             LocImage = Image.FromFile(FullPath);
             return LocImage;
+        }
+        private void InsertWineDetails(List<WineDetails> Wines)
+        {
+            string Barcodes = string.Empty;
+            string str = ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString;
+            XmlDocument xdoc = new XmlDocument();
+            XmlElement rootNode = xdoc.CreateElement("Items");
+            for (int i=0;i<Wines.Count;i++)
+            {
+                XmlElement childNode = xdoc.CreateElement("Barcode");
+                childNode.SetAttribute("barcode",Wines[i].BarCode);
+                rootNode.AppendChild(childNode);
+            }
+            xdoc.AppendChild(rootNode);
+            SqlConnection con = new SqlConnection(str);
+            SqlCommand cmd = new SqlCommand("InsertWineDetails",con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.Parameters.Add("@xmlDoc", SqlDbType.NVarChar).Value = xdoc.InnerXml;
+            cmd.CommandTimeout = 1000;
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
         }
     }
 }
